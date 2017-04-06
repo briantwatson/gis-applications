@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+  <title>Color Picker - Add Graphics</title>
+  <link rel="stylesheet" href="https://js.arcgis.com/3.20/dijit/themes/claro/claro.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/3.20/esri/css/esri.css">
+  <style>
+    #colorPicker,
+    .dialog {
+      top: 20px;
+      height: auto;
+      font-family: arial;
+      font-size: 12px;
+      margin: 5px;
+      padding: 10px;
+      position: auto;
+      width: 150px;
+      z-index: 40;
+      border: solid 2px #000;
+      border-radius: 4px;
+      background-color: #fff;
+    }
+    html,
+    body,
+    #mapDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+    }
+    button {
+      display: block;
+      width: 140px;
+      align: center;
+      background-color: #0084A8;
+      color: #FFFFFF;
+    }
+    button:active {
+      background-color: #004C73;
+    }
+  </style>
+  <script src="https://js.arcgis.com/3.20/"></script>
+  <script>
+    var map, tb;
+    var target;
+    require([
+      "esri/map", "esri/toolbars/draw", "esri/symbols/SimpleFillSymbol",
+      "esri/symbols/SimpleLineSymbol",
+      "esri/graphic", "dojo/parser", "esri/dijit/ColorPicker",
+      "esri/Color", "dojo/dom", "dojo/on",
+      "dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dijit/TitlePane", "dojo/domReady!"
+    ], function(
+      Map, Draw, SimpleFillSymbol,
+      SimpleLineSymbol,
+      Graphic, parser, ColorPicker,
+      Color, dom, on
+    ) {
+      parser.parse();
+
+      map = new Map("mapDiv", {
+        basemap: "streets",
+        center: [-25.312, 34.307],
+        zoom: 3
+      });
+
+      map.on("load", initToolbar);
+
+      var colorPicker = new ColorPicker({}, "colorPicker");
+      colorPicker.startup();
+
+      colorPicker.on("error", function(msg) {
+        console.log("color picker error:  ", msg);
+      });
+
+      function initToolbar() {
+        tb = new Draw(map);
+        tb.on("draw-end", addGraphic);
+
+        // event delegation so a click handler is not
+        // needed for each individual button
+        on(dom.byId("info"), "click", function(evt) {
+          console.log("evt", evt);
+          if (evt.target.id === "info") {
+            return;
+          }
+          target = evt.target;
+          target.style.backgroundColor = "#004C73";
+          var tool = evt.target.id.toLowerCase();
+          map.disableMapNavigation();
+          tb.activate(tool);
+        });
+
+        on(dom.byId("clear"), "click", function() {
+          map.graphics.clear();
+        });
+      }
+
+      function addGraphic(evt) {
+        //deactivate the toolbar and clear existing graphics
+        target.style.backgroundColor = "#0084A8";
+        tb.deactivate();
+        map.enableMapNavigation();
+        var symbol = new SimpleFillSymbol(
+          SimpleFillSymbol.STYLE_SOLID,
+          new SimpleLineSymbol(
+            SimpleLineSymbol.STYLE_SOLID,
+            new Color('#000'), 1),
+          colorPicker.color
+        );
+        map.graphics.add(new Graphic(evt.geometry, symbol));
+      }
+    });
+  </script>
+</head>
+<body>
+  <div data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline', gutters:false" style="width:100%;height:100%;margin:0;">
+    <div id="mapDiv" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'" style="padding:0;">
+
+      <div style="position:absolute; right:20px; top:10px; z-Index:999;" style="margin:10px">
+        <div data-dojo-type="dijit/layout/ContentPane" align="right">
+          <div align="center" class="dialog">
+            Select a Color and Shape
+          </div>
+        </div>
+        <div data-dojo-type="dijit/layout/ContentPane" style="overflow:hidden;">
+          <div id="colorPicker"></div>
+        </div>
+        <div data-dojo-type="dijit/layout/ContentPane" align="right">
+          <div id="info" class="dialog" align="center">
+            <button id="Extent">Rectangle</button>
+            <button id="Circle">Circle</button>
+            <button id="Ellipse">Ellipse</button>
+            <button id="Polygon">Polygon</button>
+            <button id="FreehandPolygon">Freehand Polygon</button>
+          </div>
+        </div>
+        <div data-dojo-type="dijit/layout/ContentPane" align="right">
+          <div id="cleardiv" class="dialog" align="center">
+            <button id="clear">Clear Graphics</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>
