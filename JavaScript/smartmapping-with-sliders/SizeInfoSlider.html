@@ -1,0 +1,120 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+		<title>SizeInfoSlider</title>
+		<link rel="stylesheet" href="//js.arcgis.com/3.20/dijit/themes/claro/claro.css">
+		<link rel="stylesheet" href="//js.arcgis.com/3.20/esri/css/esri.css">
+		<style>
+			html, body, #mapDiv {
+				height: 100%;
+				width: 100%;
+				padding: 0;
+				margin: 0;
+			}
+			
+			#sliderWrapper {
+				position: absolute;
+				left: 20px;
+				bottom: 20px;
+				background-color: #fff;
+				border: solid 2px #000;
+				border-radius: 4px;
+				background-color: #fff;
+			}
+
+			.esri-renderer-slider .esri-slider-area,
+			.esri-renderer-slider .esri-slider-area-right {
+				height: 500px;
+			}
+
+			#themeWrapper {
+				margin: 0px 50px 10px 50px;
+			}
+
+			#theme {
+				width: 150px;
+			}
+		</style>
+		<script src="//js.arcgis.com/3.20/"></script>
+		<script>
+		var sizeInfoSlider;
+			require([
+				"esri/map",
+				"esri/layers/FeatureLayer",
+				"esri/renderers/smartMapping",
+				"esri/plugins/FeatureLayerStatistics",
+				"esri/dijit/SizeInfoSlider",
+				"dojo/on",
+				"dojo/domReady!"
+			], function(Map, FeatureLayer, smartMapping, FeatureLayerStatistics,
+				 SizeInfoSlider, on){
+
+				var fieldName = "POP2007";
+				var url = "//sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/2";
+
+				var map = new Map("mapDiv", {
+					basemap: "gray",
+					center: [-115.84, 36.14],
+					zoom: 6,
+					slider: false
+				});
+
+				var featureLayer = new FeatureLayer(url, { outFields:["*"] });
+				var featureLayerStatistics = new FeatureLayerStatistics({ layer:featureLayer, visible:false });
+
+				featureLayer.on("load", function (){
+					map.addLayer(featureLayer);
+					updateSmartMapping();
+				});
+
+				function updateSmartMapping(){
+
+					//create the smartMapping renderer
+					smartMapping.createSizeRenderer({
+						layer: featureLayer,
+						field: fieldName,
+						basemap: map.getBasemap()
+					}).then(function (response){
+						if (!featureLayer.visible) {
+							featureLayer.show();
+						}
+
+						//set renderer on featurelayer to new smartMapping renderer
+						featureLayer.setRenderer(response.renderer);
+						featureLayer.redraw();
+
+						//construct SizeInfoSlider using response from smartMapping method
+						var sizeInfoSlider = new SizeInfoSlider({
+							sizeInfo: response.renderer.visualVariables[0],
+							minValue: response.statistics.min,
+							maxValue: response.statistics.max,
+							statistics: response.statistics
+						}, "sizeInfoSliderDiv");
+						sizeInfoSlider.startup();
+
+						//set handleer for change of values
+						sizeInfoSlider.on("handle-value-change", function (sizeInfo){
+							featureLayer.renderer.setVisualVariables([sizeInfo]);
+							featureLayer.redraw();
+						});
+
+						//get histogram for featureLayer and set on slider
+						featureLayerStatistics.getHistogram({
+							field: fieldName
+						}).then(function (histogram){
+							sizeInfoSlider.set("histogram", histogram);
+						});
+					});
+				}
+			});
+		</script>
+	</head>
+	<body class="claro">
+		<div id="mapDiv"></div>
+		<div id="sliderWrapper">
+			<div id="sizeInfoSliderDiv"></div>
+		</div>
+	</body>
+</html>

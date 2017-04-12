@@ -1,0 +1,187 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+		<title>smartMapping with - ColorInfoSlider</title>
+		<link rel="stylesheet" href="//js.arcgis.com/3.20/dijit/themes/claro/claro.css">
+		<link rel="stylesheet" href="//js.arcgis.com/3.20/esri/css/esri.css">
+		<style>
+			html, body, #mapDiv {
+				height: 100%;
+				width: 100%;
+				padding: 0;
+				margin: 0;
+			}
+
+			#sliderWrapper {
+				position: absolute;
+				left: 20px;
+				bottom: 20px;
+				background-color: #fff;
+				border: solid 2px #000;
+				border-radius: 4px;
+				background-color: #fff;
+			}
+
+			.esri-renderer-slider .esri-slider-area,
+			.esri-renderer-slider .esri-slider-area-right {
+				height: 500px;
+			}
+
+			#themeWrapper {
+				margin: 0px 50px 10px 50px;
+			}
+
+			#theme {
+				width: 150px;
+			}
+		</style>
+		<script src="//js.arcgis.com/3.20/"></script>
+		<script>
+		var colorInfoSlider;
+			require([
+				"esri/map",
+				"esri/layers/FeatureLayer",
+				"esri/renderers/smartMapping",
+				"esri/plugins/FeatureLayerStatistics",
+				"esri/dijit/ColorInfoSlider",
+				"dojo/on",
+				"dijit/registry",
+				"dojo/parser",
+				"dijit/form/Select",
+				"dojo/domReady!"
+			], function(Map, FeatureLayer, smartMapping, FeatureLayerStatistics,
+				 ColorInfoSlider, on, registry, parser){
+				parser.parse();
+
+				var fieldName = "POP2007";
+				var url = "//sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/2";
+				var theme = "high-to-low";
+
+				var map = new Map("mapDiv", {
+					basemap: "gray",
+					center: [-115.84, 36.14],
+					zoom: 6,
+					slider: false
+				});
+
+				var featureLayer = new FeatureLayer(url, { outFields:["*"] });
+				var featureLayerStatistics = new FeatureLayerStatistics({ layer:featureLayer, visible:false });
+
+				featureLayer.on("load", function (){
+					map.addLayer(featureLayer);
+					updateSmartMapping();
+				});
+
+				function updateSmartMapping(){
+					smartMapping.createColorRenderer({
+						layer: featureLayer,
+						field: fieldName,
+						basemap: map.getBasemap(),
+						theme: theme
+					}).then(function (response){
+						console.log("response: ", response);
+						if (!featureLayer.visible) {
+							featureLayer.show();
+						}
+
+						featureLayer.setRenderer(response.renderer);
+						featureLayer.redraw();
+
+						//instantiate ColorInfoSlider
+						colorInfoSlider = new ColorInfoSlider({
+							colorInfo: response.colorInfo,
+							minValue: response.statistics.min,
+							maxValue: response.statistics.max,
+							statistics: response.statistics
+						}, "colorInfoSliderDiv");
+						colorInfoSlider.startup();
+
+						colorInfoSlider.on("handle-value-change", function (colorInfo){
+							featureLayer.renderer.setVisualVariables([colorInfo]);
+							featureLayer.redraw();
+						});
+
+						featureLayerStatistics.getHistogram({
+							field: fieldName
+						}).then(function (histogram){
+							var sliderHandleInfo = getSliderHandlePositions(theme);
+							colorInfoSlider.set("histogram", histogram);
+							colorInfoSlider.set("handles", sliderHandleInfo["handles"]);
+							colorInfoSlider.set("primaryHandle", sliderHandleInfo["primaryHandle"]);
+						});
+
+						on(registry.byId("theme"), "change", function(value){
+							smartMapping.createColorRenderer({
+								layer: featureLayer,
+								field: fieldName,
+								basemap: map.getBasemap(),
+								theme: value
+							}).then(function (response){
+								if (!featureLayer.visible) {
+									featureLayer.show();
+								}
+								featureLayer.setRenderer(response.renderer);
+								featureLayer.redraw();
+
+								var sliderHandleInfo = getSliderHandlePositions(value);
+								colorInfoSlider.set("colorInfo", response.renderer.visualVariables[0]);
+								colorInfoSlider.set("minValue", response.statistics.min);
+								colorInfoSlider.set("maxValue", response.statistics.max);
+								colorInfoSlider.set("statistics", response.statistics);
+								colorInfoSlider.set("handles", sliderHandleInfo["handles"]);
+								colorInfoSlider.set("primaryHandle", sliderHandleInfo["primaryHandle"]);
+							});
+						});
+					});
+				}
+
+				function getSliderHandlePositions(theme){
+					switch (theme) {
+						case "high-to-low":
+							return {
+								handles: [0, 4],
+								primaryHandle: null
+							};
+						case "above-and-below":
+							return {
+								handles: [0, 2, 4],
+								primaryHandle: 2
+							};
+						case "centered-on":
+							return {
+								handles: [0, 2, 4],
+								primaryHandle: 2
+							};
+						case "extremes":
+							return {
+								handles: [0, 2, 4],
+								primaryHandle: null
+							};
+						case "group-similar":
+							return {
+								handles: [0, 1, 2, 3, 4],
+								primaryHandle: null
+							};
+					}
+				}
+			});
+		</script>
+	</head>
+	<body class="claro">
+		<div id="mapDiv"></div>
+		<div id="sliderWrapper">
+			<div id="colorInfoSliderDiv"></div>
+			<div id="themeWrapper">
+				<select id="theme" data-dojo-type="dijit/form/Select">
+					<option value="high-to-low" selected="selected">high-to-low</option>
+					<option value="above-and-below">above-and-below</option>
+					<option value="centered-on">centered-on</option>
+					<option value="extremes">extremes</option>
+					<option value="group-similar">group-similar</option>
+				</select>
+			</div>
+		</div>
+	</body>
+</html>

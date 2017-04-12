@@ -1,0 +1,182 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+	<title>smartMapping with - ClassedSizeSlider</title>
+	<link rel="stylesheet" href="//js.arcgis.com/3.20/dijit/themes/claro/claro.css">
+	<link rel="stylesheet" href="//js.arcgis.com/3.20/esri/css/esri.css">
+	<style>
+		html,
+		body,
+		#mapDiv {
+			height: 100%;
+			width: 100%;
+			padding: 0;
+			margin: 0;
+		}
+
+		#sliderWrapper {
+			position: absolute;
+			left: 20px;
+			bottom: 20px;
+			background-color: #fff;
+			border: solid 2px #000;
+			border-radius: 4px;
+			background-color: #fff;
+		}
+
+		#classificationWrapper {
+			margin: 0px 50px 10px 50px;
+		}
+
+		.esri-renderer-slider .esri-slider-area,
+		.esri-renderer-slider .esri-slider-area-right {
+			height: 500px;
+		}
+
+		#classification {
+			width: 150px;
+		}
+	</style>
+	<script src="//js.arcgis.com/3.20/"></script>
+	<script>
+		var classedSizeSlider;
+		require([
+			"esri/map",
+			"esri/layers/FeatureLayer",
+			"esri/renderers/smartMapping",
+			"esri/plugins/FeatureLayerStatistics",
+			"esri/dijit/ClassedSizeSlider",
+			"dojo/on",
+			"dijit/registry",
+			"dojo/parser",
+			"dijit/form/Select",
+			"dojo/domReady!"
+		], function(Map, FeatureLayer, smartMapping, FeatureLayerStatistics,
+			 ClassedSizeSlider, on, registry, parser) {
+			parser.parse();
+
+			var fieldName = "POP2007";
+			var url = "//sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/2";
+
+			var map = new Map("mapDiv", {
+				basemap: "gray",
+				center: [-115.84, 36.14],
+				zoom: 6,
+				slider: false
+			});
+
+			var featureLayer = new FeatureLayer(url, {
+				outFields: ["*"]
+			});
+
+			var featureLayerStatistics = new FeatureLayerStatistics({
+				layer: featureLayer,
+				visible: false
+			});
+
+			featureLayer.on("load", function() {
+				map.addLayer(featureLayer);
+				updateSmartMapping();
+			});
+
+			function updateSmartMapping() {
+
+				//create the smartMapping renderer
+				smartMapping.createClassedSizeRenderer({
+					layer: featureLayer,
+					field: fieldName,
+					basemap: map.getBasemap(),
+					classificationMethod: "natural-breaks"
+				}).then(function(response) {
+					if (!featureLayer.visible) {
+						featureLayer.show();
+					}
+
+					//set renderer on featurelayer to new smartMapping renderer
+					featureLayer.setRenderer(response.renderer);
+					featureLayer.redraw();
+
+					//construct classedColorSlider now that we have breakinfos from renderer
+					classedSizeSlider = new ClassedSizeSlider({
+						breakInfos: response.classBreakInfos,
+						minValue: response.minValue,
+						maxValue: response.maxValue
+					}, "classedSizeSliderDiv");
+					classedSizeSlider.startup();
+
+					//set handleer for change of values
+					classedSizeSlider.on("handle-value-change", function(breakInfos) {
+
+						//getting symbols from renderer
+						var rendererSymbol = featureLayer.renderer._symbols;
+
+						//looping through renderer to get original symbols, push symbols to array
+						var symbols = [];
+						for (var key in rendererSymbol) {
+							if (rendererSymbol.hasOwnProperty(key)) {
+								var obj = rendererSymbol[key];
+								symbols.push(obj);
+							}
+						}
+						//clear breaks
+						featureLayer.renderer.clearBreaks();
+
+						//add new breaks
+						for (var i = 0; i < breakInfos.length; i++) {
+							//add symbol to each break
+							breakInfos[i].symbol = symbols[i];
+							featureLayer.renderer.addBreak(breakInfos[i]);
+						}
+						featureLayer.redraw();
+					});
+
+					//get histogram for featureLayer and set on slider
+					featureLayerStatistics.getHistogram({
+						field: fieldName
+					}).then(function(histogram) {
+						classedSizeSlider.set("histogram", histogram);
+					});
+				});
+			}
+
+			//handle change of dropdown
+			on(registry.byId("classification"), "change", function(value) {
+				smartMapping.createClassedColorRenderer({
+					layer: featureLayer,
+					field: fieldName,
+					basemap: map.getBasemap(),
+					classificationMethod: value
+				}).then(function(response) {
+					if (!featureLayer.visible) {
+						featureLayer.show();
+					}
+					featureLayer.setRenderer(response.renderer);
+					featureLayer.redraw();
+					classedSizeSlider.set("breakInfos", response.classBreakInfos);
+					classedSizeSlider.set("minValue", response.minValue);
+					classedSizeSlider.set("maxValue", response.maxValue);
+				});
+			});
+		});
+	</script>
+</head>
+
+<body class="claro">
+	<div id="mapDiv"></div>
+	<div id="sliderWrapper">
+		<div id="classedSizeSliderDiv"></div>
+		<div id="classificationWrapper">
+			<select id="classification" data-dojo-type="dijit/form/Select">
+					<option value="equal-interval">equal-interval</option>
+					<option value="natural-breaks" selected="selected">natural-breaks</option>
+					<option value="quantile">quantile</option>
+					<option value="standard-deviation">standard-deviation</option>
+				</select>
+		</div>
+	</div>
+</body>
+
+</html>

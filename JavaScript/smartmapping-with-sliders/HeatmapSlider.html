@@ -1,0 +1,90 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+		<title>Heatmap Slider</title>
+		<link rel="stylesheet" href="//js.arcgis.com/3.20/dijit/themes/claro/claro.css">
+		<link rel="stylesheet" href="//js.arcgis.com/3.20/esri/css/esri.css">
+		<style>
+			html, body, #mapDiv {
+				height: 100%;
+				width: 100%;
+				padding: 0;
+				margin: 0;
+			}
+
+			#sliderWrapper {
+				position: absolute;
+				left: 20px;
+				bottom: 20px;
+				background-color: #fff;
+				border: solid 2px #000;
+				border-radius: 4px;
+				background-color: #fff;
+			}
+
+		</style>
+		<script src="//js.arcgis.com/3.20/"></script>
+		<script>
+			require([
+				"esri/map",
+				"esri/layers/FeatureLayer",
+				"esri/renderers/smartMapping",
+				"esri/dijit/HeatmapSlider",
+				"dojo/domReady!"
+			], function(Map, FeatureLayer, smartMapping, HeatmapSlider){
+				var url = "http://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/2012_CA_NHTSA/FeatureServer/0";
+
+				var map = new Map("mapDiv", {
+					basemap: "gray",
+					center: [-119.11, 36.65],
+					zoom: 7,
+					minZoom: 7,
+					maxZoom: 9,
+					slider: false
+				});
+
+				var featureLayer = new FeatureLayer(url, { outFields:["*"] });
+
+				featureLayer.on("load", function (){
+					map.addLayer(featureLayer);
+					updateSmartMapping();
+				});
+
+				function updateSmartMapping(){
+					smartMapping.createHeatmapRenderer({
+						layer: featureLayer,
+						basemap: map.getBasemap()
+					}).then(function (response){
+						if (!featureLayer.visible) {
+							featureLayer.show();
+						}
+
+						//set renderer from smartMapping on FeatureLayer
+						featureLayer.setRenderer(response.renderer);
+						featureLayer.redraw();
+
+						//construct slider now that we have renderer with its colorStops
+						var heatmapSlider = new HeatmapSlider({
+							colorStops: response.renderer.colorStops
+						}, "heatmapSliderDiv");
+						heatmapSlider.startup();
+
+						//set slider
+						heatmapSlider.on("handle-value-change", function (colorStops){
+							featureLayer.renderer.setColorStops(colorStops);
+							featureLayer.redraw();
+						});
+					});
+				}
+			});
+		</script>
+	</head>
+	<body class="claro">
+		<div id="mapDiv"></div>
+		<div id="sliderWrapper">
+			<div id="heatmapSliderDiv"></div>
+		</div>
+	</body>
+</html>
