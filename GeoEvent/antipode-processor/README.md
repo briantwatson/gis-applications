@@ -11,12 +11,12 @@ This sample seeks to demonstrate how to manipulate point geometry for a GeoEvent
 
 ## Requirements
 
-* See common [solutions-geoevent-java requirements](../../../README.md#requirements)
+* See common [solutions-geoevent-java requirements](https://github.com/Esri/solutions-geoevent-java/blob/README.md#requirements)
 * The ArcGIS Runtime for Java SDK is required in order to run the standalone Maven Tests included with this project
 
 ## Building
 
-* See the [solutions-geoevent-java instructions](../../../README.md#instructions) for general instructions on
+* See the [solutions-geoevent-java instructions](https://github.com/Esri/solutions-geoevent-java/blob/README.md#instructions) for general instructions on
     * verifying your Maven installation
     * setting the location of the GEP Server and GEP SDK repositories
     * and any other common required steps
@@ -34,10 +34,4 @@ This sample seeks to demonstrate how to manipulate point geometry for a GeoEvent
 
 ### Validating the Installation
 
-* See the [solutions-geoevent-java validation instructions](../../../README.md#validating-install).
-
-### Testing with Live Data
-
-* This processor can be tested with weather data reported from aerodromes (METAR) and Buoys or CMAN stations (BUOY). The input data files contain data for hundreds or thousands of stations, only a few of which may have been updated since the previous poll.
-
-* See the [solutions-geoevent-java/data/weather import instructions](../../../data/weather/README.md).
+* See the [solutions-geoevent-java validation instructions](https://github.com/Esri/solutions-geoevent-java/blob/master/README.md#validating-install)..
