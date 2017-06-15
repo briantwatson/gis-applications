@@ -1,6 +1,5 @@
 /*
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -18,6 +17,10 @@ package com.esri.android;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISFeatureLayer;
@@ -31,48 +34,78 @@ import java.io.InputStream;
 
 
 public class MainActivity extends Activity {
+    private MapView mMapView;
+    private Boolean layerAdded  = false;
+    private static final String TAG = "MainActivity";
 
-    MapView mMapView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mMapView = (MapView) findViewById(R.id.map);
 
-        JsonFactory factory = new JsonFactory();
-        JsonParser parser;
-        String FEATURES_JSON_PATH = getResources().getString(R.string.features_json);
-        String LAYER_INFO_PATH = getResources().getString(R.string.layerinfo_json);
-        String layerInfoString;
-        String featureData;
-        ArcGISFeatureLayer featureLayer;
+        final String FEATURES_JSON_PATH = getResources().getString(R.string.features_json);
+        final String LAYER_INFO_PATH = getResources().getString(R.string.layerinfo_json);
 
-        //create Strings from JSON files
-        featureData = jsonFileToString(FEATURES_JSON_PATH);
-        layerInfoString = jsonFileToString(LAYER_INFO_PATH);
+        Button addLayerButton = (Button) findViewById(R.id.button);
+        addLayerButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                //handle if layer was already added
+                if (layerAdded) {
+                    return;
+                }
+                JsonFactory factory = new JsonFactory();
+                JsonParser parser;
+                String layerInfoString;
+                String featureData;
+                ArcGISFeatureLayer featureLayer;
 
-        try {
-            //construct parser
-            parser = factory.createJsonParser(featureData);
-            parser.nextToken();
+                //create Strings from JSON files
+                try {
+                    featureData = jsonFileToString(FEATURES_JSON_PATH);
+                    layerInfoString = jsonFileToString(LAYER_INFO_PATH);
+                } catch (IOException e) {
+                    Toast.makeText(MainActivity.this, "JSON file(s) failed to open", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "JSON file(s) failed to parse to open");
+                    return;
+                }
 
-            //construct FeatureSet using parser on featureData string
-            FeatureSet featureSet = FeatureSet.fromJson(parser, true);
+                //construct parser
+                try {
+                    parser = factory.createJsonParser(featureData);
+                    parser.nextToken();
+                } catch (IOException e) {
+                    Toast.makeText(MainActivity.this, "JSON file(s) failed to parse", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "JSON file(s) failed to parse");
+                    return;
+                }
 
-            //construct FeatureLayer options and set mode to snapshot
-            ArcGISFeatureLayer.Options layerOptions = new ArcGISFeatureLayer.Options();
-            layerOptions.mode = ArcGISFeatureLayer.MODE.SNAPSHOT;
+                //construct FeatureSet using parser on featureData string
+                FeatureSet featureSet;
+                try {
+                    featureSet = FeatureSet.fromJson(parser, true);
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "Error constructing FeatureSet from JSON", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error constructing FeatureSet from JSON");
+                    return;
+                }
 
-            //construct FeatureLayer with components
-            featureLayer = new ArcGISFeatureLayer(layerInfoString, featureSet, layerOptions);
+                //construct FeatureLayer options and set mode to snapshot
+                ArcGISFeatureLayer.Options layerOptions = new ArcGISFeatureLayer.Options();
+                layerOptions.mode = ArcGISFeatureLayer.MODE.SNAPSHOT;
 
-            //construct mapView set opacity on FeatureLayer and add layer to mapView
-            mMapView = (MapView) findViewById(R.id.map);
-            featureLayer.setOpacity(0.5f);
-            mMapView.addLayer(featureLayer);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                //construct FeatureLayer with components
+                featureLayer = new ArcGISFeatureLayer(layerInfoString, featureSet, layerOptions);
+                featureLayer.addGraphics(featureSet.getGraphics());
+
+                //set opacity on FeatureLayer and add layer to mapView
+                featureLayer.setOpacity(0.5f);
+                mMapView.addLayer(featureLayer);
+                layerAdded = true;
+
+            }
+        });
     }
 
     /**
@@ -82,18 +115,13 @@ public class MainActivity extends Activity {
      * @return String of JSON file
      * @throws IOException if unable to open the file
      */
-    private String jsonFileToString(String filename) {
-        String bufferString = "";
-        try {
-            InputStream is = getAssets().open(filename);
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            bufferString = new String(buffer);
-        } catch (IOException e) {
-            //do nothing
-        }
+    private String jsonFileToString(String filename) throws IOException {
+        InputStream is = getAssets().open(filename);
+        int size = is.available();
+        byte[] buffer = new byte[size];
+        is.read(buffer);
+        is.close();
+        String bufferString = new String(buffer);
         return bufferString;
     }
 
