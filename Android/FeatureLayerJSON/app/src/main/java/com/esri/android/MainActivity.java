@@ -1,4 +1,4 @@
-/* Copyright 2015 Esri
+/*
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,7 @@ import java.io.InputStream;
 
 public class MainActivity extends Activity {
 
-    public ArcGISFeatureLayer featureLayer;
     MapView mMapView;
-    String layerInfoString;
-    String featureData;
-//    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,40 +43,46 @@ public class MainActivity extends Activity {
         JsonParser parser;
         String FEATURES_JSON_PATH = getResources().getString(R.string.features_json);
         String LAYER_INFO_PATH = getResources().getString(R.string.layerinfo_json);
+        String layerInfoString;
+        String featureData;
+        ArcGISFeatureLayer featureLayer;
+
+        //create Strings from JSON files
+        featureData = jsonFileToString(FEATURES_JSON_PATH);
+        layerInfoString = jsonFileToString(LAYER_INFO_PATH);
 
         try {
-
-            featureData = jsonFileToString(FEATURES_JSON_PATH);
-            layerInfoString = jsonFileToString(LAYER_INFO_PATH);
+            //construct parser
             parser = factory.createJsonParser(featureData);
-
             parser.nextToken();
+
+            //construct FeatureSet using parser on featureData string
             FeatureSet featureSet = FeatureSet.fromJson(parser, true);
 
+            //construct FeatureLayer options and set mode to snapshot
             ArcGISFeatureLayer.Options layerOptions = new ArcGISFeatureLayer.Options();
             layerOptions.mode = ArcGISFeatureLayer.MODE.SNAPSHOT;
 
+            //construct FeatureLayer with components
             featureLayer = new ArcGISFeatureLayer(layerInfoString, featureSet, layerOptions);
 
-            // Uses the service in a FeatureLayer type, possible by using the sublayer in the URL
-            ///////////////////////////////////////
-//          String FEATURE_SERVICE_URL = getResources().getString(R.string.feature_service_url);
-//          featureLayer = new ArcGISFeatureLayer(FEATURE_SERVICE_URL, ArcGISFeatureLayer.MODE.SNAPSHOT);
-//          String defExp = "SymbolID = 13";
-//
-//            featureLayer.setDefinitionExpression(defExp);
-
+            //construct mapView set opacity on FeatureLayer and add layer to mapView
             mMapView = (MapView) findViewById(R.id.map);
             featureLayer.setOpacity(0.5f);
             mMapView.addLayer(featureLayer);
-
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
-    public String jsonFileToString(String filename) throws IOException {
+    /**
+     * Returns a String representation of input JSON file
+     *
+     * @param filename the file to convert to String
+     * @return String of JSON file
+     * @throws IOException if unable to open the file
+     */
+    private String jsonFileToString(String filename) {
         String bufferString = "";
         try {
             InputStream is = getAssets().open(filename);
