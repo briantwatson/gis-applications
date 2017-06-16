@@ -11,3 +11,6 @@ A simple way to create a JSON layerDefinition is to publish a map service with t
 MainActivity:  [../app/src/main/java/com/esri/android/MainActivity.java](https://github.com/briantwatson/gis-applications/blob/master/Android/FeatureLayerJSON/app/src/main/java/com/esri/android/MainActivity.java)
 
 US Forest Service Data: https://data.fs.usda.gov/geodata/edw/datasets.php?dsetCategory=boundaries
+
+## Demo of Sample
+![FeatureLayer to JSON](../../repository-images/FeatureLayerToJSON.gif)
