@@ -6,7 +6,7 @@ For more information regarding the smartMapping module in Esri's JavaScript API 
 [esri/renderers/smartMapping](https://developers.arcgis.com/javascript/3/jsapi/esri.renderers.smartmapping-amd.html)
 
 ## 'Info' renderers
-[ColorInfo Slider Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/smartmapping-with-sliders/ColorInfoSlider.html)
+[ColorInfo Slider Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/smartmapping-with-sliders/ColorInfoSlider.html)  
 [SizeInfo Slider Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/smartmapping-with-sliders/SizeInfoSlider.html)
 
 
@@ -19,7 +19,7 @@ The Heatmap renderer returned by `smartMapping.createHeatmapRenderer()` can be m
 
 
 ## 'Classed' renderers
-[ClassedColor Slider Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/smartmapping-with-sliders/ClassedColorSlider.html)
+[ClassedColor Slider Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/smartmapping-with-sliders/ClassedColorSlider.html)  
 [ClassedSize Slider Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/smartmapping-with-sliders/ClassedSizeSlider.html)
 
 The 'Classed' renderers created from `smartMapping.createClassedColorRenderer()` and `smartMapping.createClassedSizeRenderer()` with their respective slider widgets require a bit more work to get working together.
