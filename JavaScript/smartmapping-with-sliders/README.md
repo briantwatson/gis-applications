@@ -6,13 +6,22 @@ For more information regarding the smartMapping module in Esri's JavaScript API 
 [esri/renderers/smartMapping](https://developers.arcgis.com/javascript/3/jsapi/esri.renderers.smartmapping-amd.html)
 
 ## 'Info' renderers
+[ColorInfo Slider Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/smartmapping-with-sliders/ColorInfoSlider.html)
+[SizeInfo Slider Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/smartmapping-with-sliders/SizeInfoSlider.html)
+
+
 The SizeInfoSlider and ColorInfoSlider `handle-value-change` events return sizeInfo and colorInfo objects respectively.  Those returned objects can simply be applied to a the renderers created from `smartMapping.createSizeInfo()` and `smartMapping.createColorInfo()` by using the `setVisualVariables()` method on the renderer
 
 ## Heatmap renderer
+[Heatmap Slider Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/smartmapping-with-sliders/HeatmapSlider.html)
+
 The Heatmap renderer returned by `smartMapping.createHeatmapRenderer()` can be modified with the HeatMapSlider by using the colorStops returned from the `handle-value-change` event.  The Heatmap renderer provides a `setColorStops()` method this the colorStops object can be passed in easily.
 
 
 ## 'Classed' renderers
+[ClassedColor Slider Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/smartmapping-with-sliders/ClassedColorSlider.html)
+[ClassedSize Slider Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/smartmapping-with-sliders/ClassedSizeSlider.html)
+
 The 'Classed' renderers created from `smartMapping.createClassedColorRenderer()` and `smartMapping.createClassedSizeRenderer()` with their respective slider widgets require a bit more work to get working together.
 
 The ClassedColorSlider and ClassSizeSlider `handle-value-change` events return breakInfos objects.  Applying these event objects requires several steps, namely the using the `clearBreaks()` and `addBreak()` methods.

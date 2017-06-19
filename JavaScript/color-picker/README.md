@@ -1,5 +1,7 @@
 # ColorPicker Widget Sample
 
+[Live Sample](https://briantwatson.github.io/gis-applications/JavaScript/color-picker/index.html)
+
 ## About this Sample
 Currently no samples exist demonstrating usage of the ColorPicker widget in the ArcGIS API for JavaScript 3.  The following sample seeks to fill that gap.
 
