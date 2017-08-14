@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">TextSymbol</string>
+    <string name="symbol_json">textsymbol.json</string>
+</resources>
