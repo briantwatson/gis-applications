@@ -3,7 +3,7 @@
 This sample shows how to work with URL parameters in the 4.x JavaScript API using [urlUtils](https://developers.arcgis.com/javascript/latest/api-reference/esri-core-urlUtils.html). The application uses a singular URL parameter in the form of `STATEFIPS=XX`, replacing "XX" with the FIPS code of your choice. The sample then queries the feature from the FeatureLayer, zooms the MapView to the feature and adds a highlight graphic to the MapView.
 
 ## Live Sample
-[URL Parameter Query, Zoom, and Highlight](https://briantwatson.gihub.io/gis-applications/JavaScript/url-param-query-zoom/index.html)
+[URL Parameter Query, Zoom, and Highlight](https://briantwatson.github.io/gis-applications/JavaScript/url-param-query-zoom/index.html?STATEFIPS=15)
 
 
 ## Details
